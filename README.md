@@ -201,7 +201,7 @@ F1 score =2×Precision × Recall/ Precision + Recall
 
 It's important to understand that when either recall or precision is close to zero, the harmonic mean is close to 0.
 
-### Impbalanced_Classification 
+## Impbalanced_Classification 
 1- **Class Weight Adjustment**
     By default, machine learning algorithms consider all observations in the training set to be equally weighted.
     *`By default, machine learning algorithms consider all observations in the training set to be equally weighted.`* 
@@ -250,13 +250,118 @@ print(target_upsampled.shape)
 
 ## Downsampling
 How can we reduce the number of samples in the majority class?
- 
-| Studying for an exam          | Machine learning        | --------------------------------------------------------- |
-| Difficult topics                        | Minority class 
-| Easy topics                             | Majority class                |
-| Practice difficult questions more often | Give the minority class more                                      importance          |
-|Spend less time on easy topics          | Reduce the majority class  or                                        or lower its influence |
+![alt text](image-1.png)
 
+`Downsampling is performed in several steps:`
+
+* Split the training dataset into negative and positive observations
+* Randomly drop a portion of the negative observations
+* Create a new training sample based on the data obtained after the drop
+* Shuffle the data. This will make sure that the positive data doesn't follow the negative. Doing that will ease the training job for any machine learning algorithm.
+
+To *discard* some of the data elements, use the `sample()` function available in pandas. It takes the frac parameter (from fraction), which specifies the relative portion of the data that you want to end up with after a drop. Then the `sample()` function randomly drops the data in a DataFrame and returns another DataFrame which has an amount of data you specified in the frac parameter. Here is an example:
+
+print(features_train.shape)
+
+features_sample = features_train.sample(frac=0.1, random_state=12345)
+print(features_sample.shape)
+
+Step by step creating downsample
+target = data['Col']
+features = data.drop('Col', axis=1)
+t_train, target_valid = train_test_split(
+    features, target, test_size=0.25, random_state=12345
+)
+## Create def downsample
+def downsample(features, target, fraction):
+    features_zeros = features[target == 0]
+    features_ones = features[target == 1]
+    target_zeros = target[target == 0]
+    target_ones = target[target == 1]
+
+    features_downsampled = pd.concat(
+        [features_zeros.sample(frac=fraction, random_state=12345)]
+        + [features_ones]
+    )
+    target_downsampled = pd.concat(
+        [target_zeros.sample(frac=fraction, random_state=12345)]
+        + [target_ones]
+    )
+
+    features_downsampled, target_downsampled = shuffle(
+        features_downsampled, target_downsampled, random_state=12345
+    )
+
+    return features_downsampled, target_downsampled
+
+
+features_downsampled, target_downsampled = downsample(
+    features_train, target_train, 0.1
+)
+
+model = LogisticRegression(random_state=12345, solver='liblinear')
+model.fit(features_downsampled, target_downsampled)
+predicted_valid = model.predict(features_valid)
+print('F1:', f1_score(target_valid, predicted_valid))
+
+3- Classification Threshold
+
+logistic regression models return a probability that a given observation is positive. So, let's take a closer look at the probabilities that the logistic regression model outputs. 
+
+As with any other probability, it can only have a range from zero to one. 
+
+The probability level at which the negative class ends and the positive class begins is called the threshold. By default, the initial threshold is held at 0.5. If the probability is greater than or equal to this, then the observation is positive; otherwise, it's negative
+
+* Threshold adjustment
+In sklearn, the class probability can be calculated with the `predict_proba()` function. It takes features from some observations and returns the probabilities for each observation:
+As we change the threshold value, we will see our metrics change as well.
+
+In sklearn, the class probability can be calculated with the predict_proba() function. It takes features from some observations and returns the probabilities for each observation:
+
+probabilities = model.predict_proba(features)
+
+Takeaway:
+
+predict_proba() returns the probability that each observation belongs to each class. In binary classification, the first column is the probability of Class 0 (negative class), and the second column is the probability of Class 1 (positive class). The probabilities in each row always add up to 1 (100%) because every observation must belong to one of the two classes. By default, if the probability of the positive class is 0.5 or higher, the model predicts Class 1; otherwise, it predicts Class 0. This is useful for understanding the model's confidence and for adjusting the decision threshold when needed.
+
+### PR curve
+On the graph, the precision values are on the vertical axis, whereas the recall values are along the horizontal axis.
+![alt text](image-2.png)
+A curve plotted from Precision and Recall values is called a PR curve. The higher the area under the curve, the better the model.
+
+### TPR & FPR 
+True Positive Rate, or TPR, is the result of the TP answers divided by all positive answers. Here's the formula, where P is all positive answers:
+
+                TPR=TP/P
+
+
+The False Positive Rate, or FPR, is the result of the FP answers divided by all negative answers. It is calculated using a similar formula, where N is all negative answers:
+
+FPR = FP/N
+We plot the false positive rate values (FPR) along the horizontal axis and true positive rate values (TPR) along the vertical axis. Then we iterate over a range of threshold values and plot a point for each threshold. This generates a curve called the ROC curve (Receiver Operating Characteristic).
+The ROC curve model always makes random predictions in a diagonal line going from the lower left to the upper right. The higher the area under the curve, the better the model's quality.
+​
+![alt text](image-3.png)
+To find how much our model differs from the random model, let's calculate the AUC-ROC value (Area Under Curve ROC). This is a new evaluation metric with values in the range from 0 to 1. The AUC-ROC value for a random model is 0.5.
+We can plot a ROC curve with the roc_curve() variable from the sklearn.metrics module:
+from sklearn.metrics import roc_curve
+It takes the target values and the positive class probabilities, goes over different thresholds, and returns three lists: FPR values, TPR values, and the different thresholds it went over.
+We have just witnessed a new showdown: TPR vs. FPR. Let's plot the curve.
+
+We plot the false positive rate values (FPR) along the horizontal axis and true positive rate values (TPR) along the vertical axis. Then we iterate over a range of threshold values and plot a point for each threshold. This generates a curve called the ROC curve (Receiver Operating Characteristic).
+
+The ROC curve model always makes random predictions in a diagonal line going from the lower left to the upper right. The higher the area under the curve, the better the model's quality.
+
+
+
+To find how much our model differs from the random model, let's calculate the AUC-ROC value (Area Under Curve ROC). This is a new evaluation metric with values in the range from 0 to 1. The AUC-ROC value for a random model is 0.5.
+
+We can plot a ROC curve with the roc_curve() variable from the sklearn.metrics module:
+
+from sklearn.metrics import roc_curve
+It takes the target values and the positive class probabilities, goes over different thresholds, and returns three lists: FPR values, TPR values, and the different thresholds it went over.
+
+fpr, tpr, thresholds = roc_curve(target, probabilities)
 
 
 
