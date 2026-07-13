@@ -201,6 +201,62 @@ F1 score =2×Precision × Recall/ Precision + Recall
 
 It's important to understand that when either recall or precision is close to zero, the harmonic mean is close to 0.
 
+### Impbalanced_Classification 
+1- **Class Weight Adjustment**
+    By default, machine learning algorithms consider all observations in the training set to be equally weighted.
+    *`By default, machine learning algorithms consider all observations in the training set to be equally weighted.`* 
+     The `logistic regression algorithm` in the `sklearn library` has the `class_weight` argument. By default, it is `None` — i.e., `classes are equivalent`, meaning that:
+     class_weight='balanced' as telling the algorithm:
+
+"Minority class examples are more valuable. If you misclassify one of them, treat it as a much bigger mistake than misclassifying a majority-class example."
+
+**How can we increase the number of samples in the minority class?**
+ * `upsampling`
+ 
+Upsampling is performed in several steps:
+Splitting the training dataset into negative and positive observations
+Duplicating the positive observations (the ones that have rare occurrences) several times
+Appending duplicated observations to the training dataset
+Shuffling the new tr
+
+**When to use it**
+
+* Use it when the classes are imbalanced, especially when class 1 is much   smaller than class 0.
+* Use it only on the training data to avoid data leakage.
+*  Use this on the training data only, after train_test_split and before model.fit().
+
+# Upsampling function
+def upsample(features, target, repeat):
+    features_zeros = features[target == 0]
+    features_ones = features[target == 1]
+    target_zeros = target[target == 0]
+    target_ones = target[target == 1]
+
+ # It duplicates the minority class with pd.concat().
+    features_upsampled = pd.concat([features_zeros] + [features_ones] * repeat)
+    target_upsampled = pd.concat([target_zeros] + [target_ones] * repeat)
+# It shuffles the result with shuffle(..., random_state=12345).
+    features_upsampled, target_upsampled = shuffle(
+        features_upsampled, target_upsampled, random_state=12345
+    )
+
+    return features_upsampled, target_upsampled
+
+# Call the function for the training set only.
+features_upsampled, target_upsampled = upsample(X_train, y_train, 10)
+
+print(features_upsampled.shape)
+print(target_upsampled.shape)
+
+## Downsampling
+How can we reduce the number of samples in the majority class?
+ 
+| Studying for an exam          | Machine learning        | --------------------------------------------------------- |
+| Difficult topics                        | Minority class 
+| Easy topics                             | Majority class                |
+| Practice difficult questions more often | Give the minority class more                                      importance          |
+|Spend less time on easy topics          | Reduce the majority class  or                                        or lower its influence |
+
 
 
 
