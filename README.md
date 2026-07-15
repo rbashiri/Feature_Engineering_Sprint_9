@@ -483,3 +483,23 @@ Feature Selection
 Train Model
         ↓
 Evaluate
+
+### X_valid and y_valid are used to check model performance on unseen data during development.
+
+X_valid: features for validation samples
+y_valid: true labels for those same validation samples
+pred_all = model_all.predict(X_valid): model predictions
+accuracy_score(y_valid, pred_all): compares predictions vs true labels
+The key difference from a test set:
+
+Validation set: used while building/tuning (feature choices, model type, hyperparameters).
+Test set: used once at the very end for final, unbiased performance.
+So the usual flow is:
+
+Train on train set
+Tune/evaluate on validation set
+Final report on test set
+Also, there are typos/bugs in your cell:
+
+y_vail should be y_valid
+You set X_valid/y_valid from train instead of valid in that cell, which causes leakage and overly optimistic accuracy.
