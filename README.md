@@ -363,6 +363,123 @@ It takes the target values and the positive class probabilities, goes over diffe
 
 fpr, tpr, thresholds = roc_curve(target, probabilities)
 
+### Feature Engineering
 
+Introducing Interaction Features :Interaction features capture the combined effect of two or more variables working together. 
 
+##### Polynomial Features: Capturing Non-Linear Relationships
 
+Sometimes the relationship between a feature and your target isn't a straight line. Polynomial features help capture curved relationships by creating powers of existing features.
+
+*Scikit-learn* provides Polynomial Features to automatically generate polynomial and interaction features:
+
+**Import libaray**
+`from sklearn.preprocessing import PolynomialFeatures`
+
+** #Create polynomial features up to degree 2**
+`poly = PolynomialFeatures(degree=2, include_bias = False)`
+`poly_features = poly.fit_transform(numerical_features)`
+
+#### Feature Scaling and Normalization
+The Rule:
+
+Scale-sensitive algorithms: Logistic Regression, SVM, Neural Networks, K-means **`# use StandardScaler.`**
+
+Scale-invariant algorithms: Decision Trees, Random Forest, Gradient Boosting  **`# NO Scaler needed.`**
+
+Types of Feature Scaling
+StandardScaler (Z-score Normalization)
+What it does: Transforms features to have mean=0 and standard deviation=1
+
+Formula: scaled_value = (original_value - mean) / standard_deviation
+
+When to use: Most common choice, works well when data is approximately normally distributed
+
+MinMaxScaler (Min-Max Normalization)
+What it does: Transforms features to a fixed range, typically [0, 1]
+
+Formula: scaled_value = (original_value - min) / (max - min)
+
+When to use: When you need features in a specific range, or when you know the bounds of your data
+
+**Scaling in Practice with Scikit-Learn**
+The Critical Rule: Fit on Training, Transform on Al
+
+from sklearn.preprocessing import StandardScaler
+
+**CORRECT way - prevents data leakage**
+
+scaler = StandardScaler()
+scaler.fit(X_train)  # Learn scaling parameters from training data only
+
+X_train_scaled = scaler.transform(X_train)  # Apply to training data
+X_test_scaled = scaler.transform(X_test)    # Apply same scaling to test data
+
+# WRONG way - causes data leakage
+scaler = StandardScaler()
+X_all_scaled = scaler.fit_transform(X_all)  # Don't do this!
+
+### Feature Selection:
+🎯 Main Idea
+
+After creating new features (polynomial, interaction, one-hot encoding), not every feature helps the model.
+
+Goal: Keep only the most useful features and remove unimportant ones.
+
+❓ Why Feature Selection?
+
+## Too many features can cause:
+
+⏳ Slower model training
+🎯 Overfitting (memorizing noise)
+📉 Poor prediction on new data
+🤔 Harder to understand and explain the model
+
+Sometimes fewer features produce better accuracy.
+
+#### Three Feature Selection Methods
+1. Statistical Selection
+
+Uses statistics (correlation, chi-square, etc.)
+
+Keep features that have a strong relationship with the target.
+*Calculate correlation between features and target*
+correlations = features.corrwith(target)
+*Keep features with correlation above threshold*
+important_features = correlations[abs(correlations) > 0.1]
+
+2- Random Forest Feature Importance
+Random Forest models automatically calculate feature importance during training:
+
+*`from sklearn.ensemble import RandomForestClassifier`*
+
+*rf = RandomForestClassifier()*
+*rf.fit(X_train, y_train)*
+
+# Get feature importance scores
+*importances = rf.feature_importances_*
+# Select top N most important features
+3. Recursive Feature Elimination (RFE)
+
+Repeatedly:
+
+Train model
+Remove least important feature
+Train again
+Repeat
+
+Until only the best features remain
+
+Real Project Workflow
+
+Clean data
+        ↓
+Feature Engineering
+        ↓
+Scale numerical features
+        ↓
+Feature Selection
+        ↓
+Train Model
+        ↓
+Evaluate
