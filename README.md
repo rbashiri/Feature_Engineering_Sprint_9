@@ -503,3 +503,20 @@ Also, there are typos/bugs in your cell:
 
 y_vail should be y_valid
 You set X_valid/y_valid from train instead of valid in that cell, which causes leakage and overly optimistic accuracy.
+
+### Coefficient of Determination
+
+The coefficient of determination or the `R^2` metric (R-squared) divides the model MSE by the mean MSE and then subtracts the obtained value from one. 
+
+R^2 = 1- model MSE/Mean MSE
+
+* R^2 equals one only if the MSE value is zero. Such a model would perfectly predict all the targets.
+* When R^2 is zero, the model performs as well as predicting the mean.
+
+* When R^2 is negative, the model quality is very low.
+
+* R^2 can't have values greater than one.
+
+* If the R^2 metric increases, the model’s quality also improves.
+
+* Let's now get our hands dirty and practice an calculation.
