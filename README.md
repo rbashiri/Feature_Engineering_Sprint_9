@@ -112,7 +112,7 @@ It is an ordinal variable (Ordinal Encoding should be used for ordinal variables
 It is a high cardinality variable (more advanced encoding techniques might be needed).
 
 
-=========================================================================
+=============================================
 ## Classification Metrics: Accuracy for the Decision Tree
 Accuracy is a metric that is used for classification tasks. 
 Accuracy can be calculated with the accuracy_score() function available in the sklearn.metrics module. It takes two arguments: correct targets and predictions, and returns the calculated accuracy score.
